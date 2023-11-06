@@ -9,13 +9,16 @@ import requests
 import xlrd
 import pandas as pd
 import time
+from unidecode import unidecode
+
+### LAYOUT TO WATCH: SPLIT, ADVENTURE
 
 dataframe = pd.read_excel('collection/collection.xlsx')
 name_list = list()
 card_data = list()
 
 for name in dataframe['Card Name']:
-    name_list.append(name.replace(' ','-').replace(',','').lower())
+    name_list.append(unidecode(name.replace(' ','-').replace('!','').replace('?','').replace(',','').lower().partition('-//-')[0]))
 
 counter = 0
 nbr_of_card = len(name_list)
@@ -36,13 +39,12 @@ for card_name in name_list:
     if counter%250 == 0:
         timing = time.time() - time_start
         print('%: ' + "{:.2f}".format(counter/nbr_of_card*100) +' in ' + "{:.2f}".format(timing) + ' Fetched card: ' +str(counter) + ' Estimated to end: ' +str(((timing*nbr_of_card)/counter)-timing ))
-    #time.sleep(0.1)
 
 print('%: ' + "{:.2f}".format(counter/nbr_of_card*100) +' in ' + "{:.2f}".format(time.time() - time_start) + ' Fetched card: ' +str(counter))
 
 possible_commander = list()
 for data in card_data:
-    if 'Legendary Creature' in data['type_line']:# and '//' not in data['type_line']:
+    if 'Legendary Creature' in data['type_line']:
         possible_commander.append([data['name'],data])
  
 ### CREATING TYPE ARRAYS
@@ -98,8 +100,34 @@ print('Planeswalkers: '+str(len(planeswalkers)))
 print('Battles: '+str(len(battles)))
 print('Lands: '+str(len(lands)))
 
+#%%
+import data_striping as ds
+import numpy as np
 ### CHECKING SYNERGIES
-base_url = 'https://json.edhrec.com/pages/'
-response = requests.get(base_url + 'cards/explore.json')
 
-# debug = response.json()['container']['json_dict']['cardlists']
+percent_array = np.zeros(len(name_list))
+data_strip = ds.DataStrip()
+
+time_debut = time.time()
+for ind in range(len(name_list)):
+    percent_array[ind] = data_strip.get_percent_deck(name_list[ind])
+    if ind%250 == 0:
+        print(ind)
+    
+print('Get percent Data in: ' + str(time.time()- time_debut))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
