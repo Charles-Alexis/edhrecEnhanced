@@ -193,18 +193,19 @@ class DataFetchingCollection:
         ind = 1
         for commanders in commander_list:
             resp = self.fetch_edhrec_commander(commanders)
-            print(commanders)
             if resp.status_code == 200:
                 try:
                     commander_data = resp.json()['container']['json_dict']['cardlists']
                     total_card = 0
                     compatible_card = 0
                     for categories in commander_data:
-                        for cards in categories['cardviews']:
-                            if cards['sanitized_wo'] in self.collection_name_list:
-                                compatible_card+=1
-                            total_card+=1
-                    self.possible_commander.append([ind, commanders,((float(compatible_card)/float(total_card))*100),compatible_card, total_card])
+                        if categories['header'] != 'Lands':
+                            for cards in categories['cardviews']:
+                                if cards['sanitized_wo'] in self.collection_name_list:
+                                    compatible_card+=1
+                                total_card+=1
+                                
+                    self.possible_commander.append([ind, commanders,int((float(compatible_card)/float(total_card))*100),compatible_card, total_card])
                     ind += 1
                 except KeyError:
                     ind+=1
